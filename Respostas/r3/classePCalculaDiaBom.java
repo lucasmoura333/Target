@@ -1,5 +1,4 @@
-package terceiro;
-
+package Respostas.r3;
 import java.util.List;
 
 public class classePCalculaDiaBom {

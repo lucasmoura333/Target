@@ -1,4 +1,4 @@
-package quinto;
+package Respostas.r5;
 
 public class InversorDeString {
 
