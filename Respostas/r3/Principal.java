@@ -5,13 +5,14 @@ import java.io.File;
 import java.util.List;
 import java.util.Scanner;
 
+
 public class Principal {
     public static void main(String[] args) {
         //Lista os arquivos na pasta "/Ref/" - Tive que garimpar umas coisas
         File pasta = new File("Ref");
         File[] arquivos = pasta.listFiles();
 
-        //Só tive a ideia, nem testei.
+        
         if (arquivos == null || arquivos.length == 0){
             System.out.println("Nenhum arquivo encontrado na pasta /Ref/");
             return;
@@ -34,18 +35,21 @@ public class Principal {
         }
         
 
-        // Validação da extensão do arquivo > Garimpei.
+        //Refatorei e já fvalidei no mesmo bloco.
         String nomeArquivo = arquivos[escolhaArquivo - 1].getName();
-        if (!nomeArquivo.endsWith(".json") && !nomeArquivo.endsWith(".xml")) {
+        String caminhoArquivo = arquivos[escolhaArquivo - 1].getPath();
+        List<FaturamentoDiario> faturamentos;
+
+        if (nomeArquivo.endsWith(".json")) {
+            faturamentos = LeitorDJson.lerFaturamento(caminhoArquivo);
+        } else if (nomeArquivo.endsWith(".xml")) {
+            faturamentos = LeitorDXml.lerFaturamento(caminhoArquivo);
+        } else {
             System.out.println("Arquivo inválido. Apenas arquivos JSON ou XML são permitidos.");
             return;
         }
 
-        // Ajusta o caminho do arquivo escolhido
-        String caminhoArquivo = arquivos[escolhaArquivo - 1].getPath();
-        List<FaturamentoDiario> faturamentos = LeitorDJason.lerFaturamento(caminhoArquivo);
-
-        // Validação para caso o arquivo esteja vazio
+        //Validação para caso a Lista esteja vazia, ou seja, ainda é possivel abrir um arquivo Json ou Xml mas ele está
         if (faturamentos.isEmpty()) {
             System.out.println("Nenhum faturamento encontrado.");
             return;
@@ -60,26 +64,26 @@ public class Principal {
         int relatorio = scanner.nextInt();
 
         System.out.println("");
-        System.out.println("|____________________________________________|");
+        System.out.println("");
         System.out.println("");
 
 
         //Pro relatório 1 e 2 optei por fazer um loop pelos lados opostos, o problema está obviamente em valores muito altos ou jsons muito grandes
         switch (relatorio){
             case 1:
-                 classePMenorFatuarmento calculaMenor = new classePMenorFatuarmento();
-                 double menor = calculaMenor.calcularMenor(faturamentos);
-                 System.out.println("Menor faturamento do mês: " + menor);
+                 ClassePMenorFatuarmento calculaMenor = new ClassePMenorFatuarmento();
+                 FaturamentoDiario resultadoMenor = calculaMenor.calcularMenor(faturamentos);                              
+                 System.out.println("Menor faturamento do mês: " + resultadoMenor.getValorDia() + " no dia: " + resultadoMenor.getDia());
                  break;
 
             case 2:
-                classePMaiorFatuarmento calculaMaior = new classePMaiorFatuarmento();
-                double maior = calculaMaior.calcularMaior(faturamentos);
-                System.out.println("Menor faturamento do mês: " + maior);
+                ClassePMaiorFatuarmento calculaMaior = new ClassePMaiorFatuarmento();
+                FaturamentoDiario resultadoMaior = calculaMaior.calcularMaior(faturamentos);
+                System.out.println("Maior faturamento do mês: " + resultadoMaior.getValorDia() + " no dia: " + resultadoMaior.getDia());
                 break;
 
             case 3:
-                classePCalculaDiaBom calculadiasbons = new classePCalculaDiaBom();
+                ClassePCalculaDiaBom calculadiasbons = new ClassePCalculaDiaBom();
                 int diasAcimaMedia = calculadiasbons.calculardiabom(faturamentos);
                 System.out.println("Número de dias com faturamento acima da média: " + diasAcimaMedia);
                 break;

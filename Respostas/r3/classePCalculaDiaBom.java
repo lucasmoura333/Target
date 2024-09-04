@@ -1,7 +1,7 @@
 package Respostas.r3;
 import java.util.List;
 
-public class classePCalculaDiaBom {
+public class ClassePCalculaDiaBom {
 
     public int calculardiabom(List <FaturamentoDiario> faturamentos){
         double somaFaturamento = 0;
