@@ -1,4 +1,4 @@
-package terceiro;
+package Respostas.r3;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class RelatoriosFaturamento {
+public class Principal {
     public static void main(String[] args) {
         List<FaturamentoDiario> faturamentos = leitorDJason("faturamento.json");
 

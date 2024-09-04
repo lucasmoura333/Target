@@ -1,4 +1,4 @@
-package terceiro;
+package Respostas.r3;
 
 class FaturamentoDiario {
     int dia;
