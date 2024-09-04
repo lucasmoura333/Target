@@ -1,6 +1,7 @@
 package Respostas.r3;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,22 +10,61 @@ import java.util.Scanner;
 
 public class Principal {
     public static void main(String[] args) {
-        List<FaturamentoDiario> faturamentos = leitorDJason("faturamento.json");
+        //Lista os arquivos na pasta "/Ref/" - Tive que garimpar umas coisas
+        File pasta = new File("Ref");
+        File[] arquivos = pasta.listFiles();
 
-        //Validação para caso o arquivo esteja vazio
-        if (faturamentos.isEmpty()){
-            System.out.println("Nenhum faturamento encontrado");
+        //Só tive a ideia, nem testei.
+        if (arquivos == null || arquivos.length == 0){
+            System.out.println("Nenhum arquivo encontrado na pasta /Ref/");
+            return;
+        }
+
+        //Exibe terminalzinho dos arquivos disponiveis na pasta.
+        System.out.println("Arquivos disponiveis para leitura do Faturamento:");
+        for(int i = 0; i < arquivos.length; i++){
+            System.out.println((i + 1) + " - " + arquivos[i].getName());
+        }
+
+        //Abre o terminalzinho pro usuario escolher o arquivo correspondente na pasta.
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Escolha um arquivo pelo número: ");
+        int escolhaArquivo = scanner.nextInt();
+
+        if (escolhaArquivo < 1 || escolhaArquivo > arquivos.length){
+            System.out.println("Escolha inválida.");
+            return;
+        }
+        
+
+        // Validação da extensão do arquivo > Garimpei.
+        String nomeArquivo = arquivos[escolhaArquivo - 1].getName();
+        if (!nomeArquivo.endsWith(".json") && !nomeArquivo.endsWith(".xml")) {
+            System.out.println("Arquivo inválido. Apenas arquivos JSON ou XML são permitidos.");
+            return;
+        }
+
+        // Ajusta o caminho do arquivo escolhido
+        String caminhoArquivo = arquivos[escolhaArquivo - 1].getPath();
+        List<FaturamentoDiario> faturamentos = leitorDJason(caminhoArquivo);
+
+        // Validação para caso o arquivo esteja vazio
+        if (faturamentos.isEmpty()) {
+            System.out.println("Nenhum faturamento encontrado.");
             return;
         }
 
         
-        //Terminalzinho para "usuario" , já que optei separar os métodos por classes
-        Scanner scanner = new Scanner(System.in);
+        //Escolha dos relatórios, lembrando que o terminalzinho foi aberto anteriormente para escolha do arquivo.        
         System.out.println("Escolha um relatório:");
         System.out.println(" 1 - Calcular Menor Faturamento");
         System.out.println(" 2 - Calcular Maior Faturamento");
         System.out.println(" 3 - Calcular dias com Faturamento Acima da Média");
         int relatorio = scanner.nextInt();
+
+        System.out.println("");
+        System.out.println("|____________________________________________|");
+        System.out.println("");
 
 
         //Pro relatório 1 e 2 optei por fazer um loop pelos lados opostos, o problema está obviamente em valores muito altos ou jsons muito grandes
@@ -54,41 +94,59 @@ public class Principal {
 
     }
 
-    //Em nenhum momento do desafio deixa explicito se precisa ou não dem método para ler o arquivo em Json, apenas presupõe-se que ele esteja sendo recebido mas dei uma pesquisada para fins didáticos rsrsrsrs
+   /* 
+     Atualização provisória, presumindo que o Arquivo JSON fornecido sera referente a esse problema.
+        Tomarei a liberdade poética de fazer em três partes com uma possivel quarta...
+            1 - Esta atualização impotando o arquivo enviado.
+            2 - Criação de um terminal para escolha dos arquivos.
+            3 - Adaptando ao XML tambem, e, separando maisos objetos.  
+            Bonus - Transformar em API, recebendo qualquer links compativeis e usando o minimo de spring possivel.
+           
+    */
 
-
-private static List<FaturamentoDiario> leitorDJason(String caminhoArquivo) {
+    private static List<FaturamentoDiario> leitorDJason(String caminhoArquivo) {
         List<FaturamentoDiario> faturamentos = new ArrayList<>();
 
-        //Gambiarra para leitura de arquivos que encontrei para evitar uso de dependencias
-        //Encontrei outros métodos mais avançados mas por hora, este ficou compreensivel para mim rsrsrsrs
         try (BufferedReader br = new BufferedReader(new FileReader(caminhoArquivo))) {
             String linha;
             while ((linha = br.readLine()) != null) {
-                
-                // Removendo caracteres indesejados e separando por chaves e vírgulas
-                linha = linha.replaceAll("[\\[\\]{}]", "");
+
+                //Remove os caracteres especiais e tira o espaço final
+                linha = linha.replaceAll("[\\[\\]{}]", "").trim();
+                //Pasa a tratar cada linha como elemento unico separado por virgula
                 String[] elementos = linha.split(",");
 
-                // Extrai os valores de dia e valor
+                //Variáveis temporárias para armazenar dia e valor, para garantir que não se perdessem valores em dias com valor = 0, tinha virado roleta-russa.
+                int dia = 0;
+                double valor = 0.0;
+
+                // Extrai os valores de dia e valor, se existirem
                 for (String elemento : elementos) {
-                    if (elemento.contains("\"dia\"")) {
-                        int dia = Integer.parseInt(elemento.split(":")[1].trim());
-                        double valor = Double.parseDouble(elementos[1].split(":")[1].trim());
-                        faturamentos.add(new FaturamentoDiario(dia, valor));
+                    String[] keyValue = elemento.split(":");
+
+                    // Verifica se há um par chave-valor e verifica se realmente foi repatido entre dois dados, ex: '[dia:valor]'
+                    if (keyValue.length == 2) {
+                        String chave = keyValue[0].trim().replace("\"", "");
+                        String valorStr = keyValue[1].trim();
+
+                        // Verifica se o elemento atual é "dia" ou "valor"
+                        if (chave.equals("dia")) {
+                            dia = Integer.parseInt(valorStr);
+                        } else if (chave.equals("valor")) {
+                            valor = Double.parseDouble(valorStr);
+                        }
                     }
                 }
+
+                // Adiciona um novo registro de faturamento se ambos os valores forem válidos
+                faturamentos.add(new FaturamentoDiario(dia, valor));
             }
         } catch (IOException e) {
             System.out.println("Erro ao ler o arquivo: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            System.out.println("Erro ao converter os valores numéricos: " + e.getMessage());
         }
-
         return faturamentos;
-    }
-
-
-
-
-
+    }    
     
 }
